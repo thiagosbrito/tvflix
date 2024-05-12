@@ -64,3 +64,8 @@
   width: 100% !important;
   height: 100% !important;
 }
+
+mux-player {
+  --media-object-fit: cover;
+  --media-object-position: center;
+}

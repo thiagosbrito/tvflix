@@ -1,10 +1,11 @@
 'use client';
 import { PlaylistItem } from "iptv-playlist-parser";
 import { ChevronRight, PlayIcon, TvIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import VideoPlayer from "./VideoPlayer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import Image from "next/image";
 
 
 const fetchTSStream = async (stream_url: string) => {
@@ -39,7 +40,12 @@ export const TvPlayer = ({ guide }: {guide: any}) => {
     const playerRef = useRef(null);
     const [videoOptions, setVideoOptions] = useState<any | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<{title: string; items: PlaylistItem[]} | null>(null);
-
+    const filteredGuide = guide.filter((group: { title: string; items: PlaylistItem[] }) => group.items.length > 0  && !group.title.includes('+18') && !group.title.includes('Adultos'));
+    // useEffect(() => {
+    //     if (filteredGuide.length > 0) {
+    //         extractAllLogoURLSAndExcludeDuplicates(filteredGuide);
+    //     }
+    // }, [filteredGuide])
     const setVideo = async (video: PlaylistItem) => {
         const src = video.url.includes('.mp4') ? video.url : await fetchTSStream(video.url);
         const options = {
@@ -59,7 +65,23 @@ export const TvPlayer = ({ guide }: {guide: any}) => {
         }
         setVideoOptions(options);
     }
-    
+    // const extractAllLogoURLSAndExcludeDuplicates = (guide: any): Array<{protocol: string, hostname: string}> => {
+    //     const uniqueLogos: Array<{protocol: string, hostname: string}> = guide.reduce((acc: Array<{protocol: string, hostname: string}>, group: { items: PlaylistItem[] }) => {
+    //         group.items.forEach((item: PlaylistItem) => {
+    //         const logoURL = item.tvg.logo;
+    //         let protocol: string;
+    //         protocol = logoURL.includes('https://') ? 'https' : 'http';
+    //         const domain = logoURL.split('/')[2];
+    //         const logo = { protocol, hostname: domain };
+    //         if (!acc.some((logoObj) => logoObj.hostname === domain)) {
+    //             acc.push(logo);
+    //         }
+    //         });
+    //         return acc;
+    //     }, []);
+    //     console.log(uniqueLogos);
+    //     return uniqueLogos;
+    // }
 
     const defineCategory = (category: {title: string; items: PlaylistItem[]}) => {
         setVideoOptions(null);
@@ -81,11 +103,11 @@ export const TvPlayer = ({ guide }: {guide: any}) => {
             <aside className="min-w-80 h-full border border-slate-500 overflow-hidden p-4 flex flex-col gap-y-3">
                 <h1 className="text-xl text-white font-bold flex gap-x-4 items-center"><TvIcon className="h-6 w-6" />Your on-line channels</h1>
                 <ul className="flex flex-col gap-y-2 overflow-y-auto">
-                    {guide.map((group: { title: string; items: PlaylistItem[] }) => {
+                    {filteredGuide.map((group: { title: string; items: PlaylistItem[] }) => {
                         if (group) {
                             return (
                                 <li key={group.title} className="flex items-center justify-between px-4 py-2 cursor-pointer rounded-md backdrop-blur bg-black/30 hover:bg-black/65 transition-all ease-in" onClick={() => defineCategory(group)}>
-                                    <h2 className="text-lg text-white font-semibold">{group.title}</h2>
+                                    <h2 className="text-lg text-white font-semibold">{group.title} - {`(${group.items.length})`}</h2>
                                     <ChevronRight className="w-6 h-6" />
                                 </li>
                             )
@@ -100,17 +122,9 @@ export const TvPlayer = ({ guide }: {guide: any}) => {
                         <>
                             {selectedCategory.items.map((item: PlaylistItem, index) => {
                                 return (
-                                    <Card key={index} onClick={() => setVideo(item)}>
-                                        <CardHeader>
-                                            <CardTitle>{item.name}</CardTitle>
-                                            <CardDescription>{item.group.title}</CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="flex">
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <PlayIcon className="w-16 h-16 text-gray-400" />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                    <div key={index} className={`rounded-lg border border-slate-400 flex w-full h-14 items-center justify-center`}>
+                                        <Image src={item.tvg.logo} alt={item.name} width={200} height={56} />
+                                    </div>
                                 )
                             })}
                         </>

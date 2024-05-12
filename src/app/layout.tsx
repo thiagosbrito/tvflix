@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
+import { ClerkProvider } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server';
 import "./globals.css";
+import { redirect } from "next/navigation";
 
 const nunito = Nunito({ subsets: ["latin"] });
 
@@ -14,9 +17,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = auth();
+  auth().protect();
   return (
-    <html lang="en">
-      <body className={`w-screen h-screen bg-gradient-to-tr from-black to-black/75 ${nunito.className}`}>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`w-screen h-screen bg-gradient-to-tr from-black to-black/75 ${nunito.className}`}>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }
